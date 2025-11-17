@@ -4,6 +4,29 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "../components/header";
 import Footer from "../components/footer";
+import {
+  Lightbulb,
+  AlertTriangle,
+  Info,
+  CheckCircle2,
+  Zap,
+  Rocket,
+  Terminal,
+  Code2,
+  FileCode,
+  Database,
+  Server,
+  GitBranch,
+  PackageCheck,
+  Heart,
+  Star,
+  Sparkles,
+  Flag,
+  Target,
+  Shield,
+  Lock,
+  Key
+} from "lucide-react";
 
 interface DocSection {
   id: string;
@@ -67,26 +90,141 @@ export default function DocsPage() {
   }, [activeSection]);
 
   const renderMarkdown = (markdown: string) => {
-    // Simple markdown rendering - converts to HTML
     const lines = markdown.split('\n');
     const html: JSX.Element[] = [];
     let inCodeBlock = false;
     let codeBlockContent: string[] = [];
     let codeBlockLang = '';
+    let inBlockquote = false;
+    let blockquoteContent: string[] = [];
+    let inTable = false;
+    let tableRows: string[][] = [];
+
+    const isShieldsBadge = (line: string) => {
+      // Detect shields.io badges: [![...](...shields.io...)](...)  or  ![...](...shields.io...)
+      return /!\[.*\]\(.*shields\.io.*\)/.test(line) ||
+             /!\[.*\]\(.*img\.shields\.io.*\)/.test(line) ||
+             /!\[.*\]\(.*badge.*\)/.test(line);
+    };
+
+    const getIconForEmoji = (emoji: string) => {
+      const iconMap: { [key: string]: JSX.Element } = {
+        '💡': <Lightbulb className="w-5 h-5" />,
+        '⚠️': <AlertTriangle className="w-5 h-5" />,
+        '⚠': <AlertTriangle className="w-5 h-5" />,
+        'ℹ️': <Info className="w-5 h-5" />,
+        'ℹ': <Info className="w-5 h-5" />,
+        '✅': <CheckCircle2 className="w-5 h-5" />,
+        '✓': <CheckCircle2 className="w-5 h-5" />,
+        '⚡': <Zap className="w-5 h-5" />,
+        '🚀': <Rocket className="w-5 h-5" />,
+        '💻': <Terminal className="w-5 h-5" />,
+        '📝': <FileCode className="w-5 h-5" />,
+        '🔧': <Code2 className="w-5 h-5" />,
+        '🗄️': <Database className="w-5 h-5" />,
+        '🗄': <Database className="w-5 h-5" />,
+        '🖥️': <Server className="w-5 h-5" />,
+        '🖥': <Server className="w-5 h-5" />,
+        '🌿': <GitBranch className="w-5 h-5" />,
+        '📦': <PackageCheck className="w-5 h-5" />,
+        '❤️': <Heart className="w-5 h-5" />,
+        '❤': <Heart className="w-5 h-5" />,
+        '⭐': <Star className="w-5 h-5" />,
+        '✨': <Sparkles className="w-5 h-5" />,
+        '🚩': <Flag className="w-5 h-5" />,
+        '🎯': <Target className="w-5 h-5" />,
+        '🛡️': <Shield className="w-5 h-5" />,
+        '🛡': <Shield className="w-5 h-5" />,
+        '🔒': <Lock className="w-5 h-5" />,
+        '🔑': <Key className="w-5 h-5" />,
+      };
+      return iconMap[emoji] || <Info className="w-5 h-5" />;
+    };
+
+    const renderTextWithIcons = (text: string): (string | JSX.Element)[] => {
+      // Remove shields.io badges
+      let cleaned = text
+        .replace(/!\[.*?\]\(.*?shields\.io.*?\)/g, '')
+        .replace(/!\[.*?\]\(.*?img\.shields\.io.*?\)/g, '')
+        .replace(/\[!\[.*?\]\(.*?shields\.io.*?\)\]\(.*?\)/g, '');
+
+      // List of emojis we support
+      const knownEmojis = ['💡', '⚠️', '⚠', 'ℹ️', 'ℹ', '✅', '✓', '⚡', '🚀', '💻', '📝', '🔧', '🗄️', '🗄', '🖥️', '🖥', '🌿', '📦', '❤️', '❤', '⭐', '✨', '🚩', '🎯', '🛡️', '🛡', '🔒', '🔑'];
+
+      // Emoji regex to match common emojis (used for splitting only)
+      const emojiRegex = /(💡|⚠️|⚠|ℹ️|ℹ|✅|✓|⚡|🚀|💻|📝|🔧|🗄️|🗄|🖥️|🖥|🌿|📦|❤️|❤|⭐|✨|🚩|🎯|🛡️|🛡|🔒|🔑)/g;
+      const parts = cleaned.split(emojiRegex);
+
+      return parts.map((part, idx) => {
+        // Check if this part is an emoji by checking if it's in our known list
+        if (knownEmojis.includes(part)) {
+          return <span key={`icon-${idx}`} className="inline-flex items-center text-primary mx-0.5">{getIconForEmoji(part)}</span>;
+        }
+
+        // Skip empty parts
+        if (!part) return '';
+
+        // Format the text part
+        const formatted = part
+          // Links
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-neon-pink underline transition-colors">$1</a>')
+          // Bold
+          .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-primary font-bold">$1</strong>')
+          // Italic
+          .replace(/\*([^*]+)\*/g, '<em class="text-secondary-accent italic">$1</em>')
+          // Inline code
+          .replace(/`([^`]+)`/g, '<code class="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-code text-sm border border-primary/20">$1</code>');
+
+        return formatted;
+      });
+    };
+
+    const formatInline = (text: string) => {
+      // This is for use in dangerouslySetInnerHTML (no icons, just HTML)
+      let formatted = text
+        // Remove shield badges
+        .replace(/!\[.*?\]\(.*?shields\.io.*?\)/g, '')
+        .replace(/!\[.*?\]\(.*?img\.shields\.io.*?\)/g, '')
+        .replace(/\[!\[.*?\]\(.*?shields\.io.*?\)\]\(.*?\)/g, '')
+        // Remove emojis (will be handled separately)
+        .replace(/(💡|⚠️|⚠|ℹ️|ℹ|✅|✓|⚡|🚀|💻|📝|🔧|🗄️|🗄|🖥️|🖥|🌿|📦|❤️|❤|⭐|✨|🚩|🎯|🛡️|🛡|🔒|🔑)/g, '');
+
+      return formatted
+        // Links
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-neon-pink underline transition-colors">$1</a>')
+        // Bold
+        .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-primary font-bold">$1</strong>')
+        // Italic
+        .replace(/\*([^*]+)\*/g, '<em class="text-secondary-accent italic">$1</em>')
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code class="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-code text-sm border border-primary/20">$1</code>');
+    };
 
     lines.forEach((line, index) => {
+      // Skip shields.io badge lines entirely
+      if (isShieldsBadge(line)) {
+        return;
+      }
+
       // Code blocks
       if (line.startsWith('```')) {
         if (!inCodeBlock) {
           inCodeBlock = true;
-          codeBlockLang = line.replace('```', '');
+          codeBlockLang = line.replace('```', '').trim();
           codeBlockContent = [];
         } else {
           inCodeBlock = false;
           html.push(
-            <pre key={`code-${index}`} className="bg-background-dark border border-primary/30 p-4 rounded-sm overflow-x-auto my-4">
-              <code className="font-code text-sm text-text-light">{codeBlockContent.join('\n')}</code>
-            </pre>
+            <div key={`code-${index}`} className="my-6 relative group">
+              {codeBlockLang && (
+                <div className="absolute -top-3 left-4 bg-primary/20 border border-primary/40 px-3 py-1 text-xs font-code text-primary uppercase">
+                  [{codeBlockLang}]
+                </div>
+              )}
+              <pre className="bg-background-dark/50 border-2 border-primary/30 p-5 rounded overflow-x-auto shadow-[0_0_20px_rgba(64,224,208,0.1)] group-hover:shadow-[0_0_30px_rgba(64,224,208,0.2)] transition-shadow">
+                <code className="font-code text-sm text-text-light leading-relaxed">{codeBlockContent.join('\n')}</code>
+              </pre>
+            </div>
           );
           codeBlockContent = [];
         }
@@ -98,49 +236,111 @@ export default function DocsPage() {
         return;
       }
 
+      // Blockquotes/Callouts
+      if (line.startsWith('> ')) {
+        if (!inBlockquote) {
+          inBlockquote = true;
+          blockquoteContent = [];
+        }
+        blockquoteContent.push(line.replace('> ', ''));
+        return;
+      } else if (inBlockquote) {
+        inBlockquote = false;
+        const content = blockquoteContent.join(' ');
+        const type = content.toLowerCase().includes('note') ? 'note' :
+                     content.toLowerCase().includes('warning') ? 'warning' :
+                     content.toLowerCase().includes('tip') ? 'tip' : 'info';
+        const colors = {
+          note: 'border-primary/50 bg-primary/5 text-primary',
+          warning: 'border-neon-pink/50 bg-neon-pink/5 text-neon-pink',
+          tip: 'border-secondary-accent/50 bg-secondary-accent/5 text-secondary-accent',
+          info: 'border-primary/30 bg-primary/5 text-primary'
+        };
+        const icons = {
+          note: <Lightbulb className="w-5 h-5 flex-shrink-0" />,
+          warning: <AlertTriangle className="w-5 h-5 flex-shrink-0" />,
+          tip: <Sparkles className="w-5 h-5 flex-shrink-0" />,
+          info: <Info className="w-5 h-5 flex-shrink-0" />
+        };
+        html.push(
+          <div key={`quote-${index}`} className={`my-4 border-l-4 ${colors[type]} p-4 rounded-r shadow-sm`}>
+            <div className="flex items-start gap-3">
+              <span className={colors[type]}>
+                {icons[type]}
+              </span>
+              <p className="text-text-light text-sm leading-relaxed flex-1" dangerouslySetInnerHTML={{ __html: formatInline(content) }} />
+            </div>
+          </div>
+        );
+        blockquoteContent = [];
+      }
+
+      // Horizontal rule
+      if (line.trim() === '---' || line.trim() === '***') {
+        html.push(<hr key={index} className="my-8 border-t border-primary/30" />);
+        return;
+      }
+
       // Headers
-      if (line.startsWith('### ')) {
-        html.push(<h3 key={index} className="text-primary text-xl font-headline uppercase mt-6 mb-3">{line.replace('### ', '')}</h3>);
+      if (line.startsWith('#### ')) {
+        html.push(<h4 key={index} className="text-primary text-lg font-headline uppercase mt-5 mb-2 flex items-center gap-2"><span className="text-neon-pink">▸</span>{line.replace('#### ', '')}</h4>);
+      } else if (line.startsWith('### ')) {
+        html.push(<h3 key={index} className="text-primary text-xl font-headline uppercase mt-6 mb-3 flex items-center gap-2"><span className="text-neon-pink">■</span>{line.replace('### ', '')}</h3>);
       } else if (line.startsWith('## ')) {
-        html.push(<h2 key={index} className="text-primary text-2xl font-headline uppercase mt-8 mb-4 border-b border-primary/30 pb-2">{line.replace('## ', '')}</h2>);
+        html.push(<h2 key={index} className="text-primary text-2xl font-headline uppercase mt-8 mb-4 border-b-2 border-primary/30 pb-3 shadow-[0_2px_10px_rgba(64,224,208,0.1)]">{line.replace('## ', '')}</h2>);
       } else if (line.startsWith('# ')) {
-        html.push(<h1 key={index} className="text-primary text-3xl font-headline uppercase mt-4 mb-6">{line.replace('# ', '')}</h1>);
+        html.push(<h1 key={index} className="text-primary text-3xl font-headline uppercase mt-4 mb-6 pb-4 border-b-2 border-neon-pink/30">{line.replace('# ', '')}</h1>);
       }
       // Lists
-      else if (line.startsWith('- ') || line.startsWith('* ')) {
-        const content = line.replace(/^[*-] /, '');
+      else if (line.match(/^(\s*)[-*] /)) {
+        const indent = line.match(/^(\s*)/)![0].length;
+        const content = line.replace(/^\s*[-*] /, '');
+        const parts = renderTextWithIcons(content);
         html.push(
-          <li key={index} className="text-text-light ml-6 mb-2 list-disc">
-            <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>').replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 font-code text-sm">$1</code>') }} />
+          <li key={index} className={`text-text-light mb-2 list-none flex items-start gap-2`} style={{ marginLeft: `${indent * 8}px` }}>
+            <span className="text-primary mt-1">▸</span>
+            <span className="flex-1">
+              {parts.map((part, i) =>
+                typeof part === 'string' ?
+                  <span key={i} dangerouslySetInnerHTML={{ __html: part }} /> :
+                  part
+              )}
+            </span>
           </li>
         );
       }
       // Numbered lists
       else if (/^\d+\. /.test(line)) {
         const content = line.replace(/^\d+\. /, '');
+        const parts = renderTextWithIcons(content);
         html.push(
-          <li key={index} className="text-text-light ml-6 mb-2 list-decimal">
-            <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>').replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 font-code text-sm">$1</code>') }} />
+          <li key={index} className="text-text-light ml-6 mb-2 list-decimal marker:text-primary marker:font-bold">
+            <span>
+              {parts.map((part, i) =>
+                typeof part === 'string' ?
+                  <span key={i} dangerouslySetInnerHTML={{ __html: part }} /> :
+                  part
+              )}
+            </span>
           </li>
         );
       }
-      // Inline code
-      else if (line.includes('`')) {
-        const formatted = line.replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 font-code text-sm">$1</code>');
-        html.push(<p key={index} className="text-text-light mb-3" dangerouslySetInnerHTML={{ __html: formatted }} />);
-      }
-      // Bold text
-      else if (line.includes('**')) {
-        const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>');
-        html.push(<p key={index} className="text-text-light mb-3" dangerouslySetInnerHTML={{ __html: formatted }} />);
-      }
       // Regular paragraphs
       else if (line.trim()) {
-        html.push(<p key={index} className="text-text-light mb-3">{line}</p>);
+        const parts = renderTextWithIcons(line);
+        html.push(
+          <p key={index} className="text-text-light mb-4 leading-relaxed">
+            {parts.map((part, i) =>
+              typeof part === 'string' ?
+                <span key={i} dangerouslySetInnerHTML={{ __html: part }} /> :
+                part
+            )}
+          </p>
+        );
       }
       // Empty lines
       else {
-        html.push(<div key={index} className="h-2" />);
+        html.push(<div key={index} className="h-3" />);
       }
     });
 
@@ -333,7 +533,7 @@ export default function DocsPage() {
                 </div>
               </div>
 
-              <div className="relative z-10 max-w-5xl mx-auto">
+              <div className="relative z-10">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-12 gap-4">
                     <div className="flex items-center gap-3 text-primary">
@@ -345,7 +545,9 @@ export default function DocsPage() {
                   </div>
                 ) : (
                   <article className="prose prose-invert max-w-none">
-                    {renderMarkdown(content)}
+                    <div className="space-y-1">
+                      {renderMarkdown(content)}
+                    </div>
                   </article>
                 )}
               </div>
@@ -396,12 +598,20 @@ export default function DocsPage() {
           </div>
 
           {/* --- MOBILE NAVIGATION --- */}
-          <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden fixed top-20 left-4 z-50 bg-background-dark border border-primary px-3 py-2 text-xs font-code uppercase text-primary hover:bg-primary/10 transition-colors"
-          >
-              {sidebarOpen ? "[CLOSE]" : "[MENU]"}
-          </button>
+          <div className="lg:hidden fixed bottom-20 right-4 z-50 flex flex-col gap-3">
+            <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="bg-background-dark/95 backdrop-blur-sm border-2 border-primary px-4 py-3 text-xs font-code uppercase text-primary hover:bg-primary/10 transition-all shadow-[0_0_20px_rgba(64,224,208,0.3)] hover:shadow-[0_0_30px_rgba(64,224,208,0.5)]"
+            >
+                {sidebarOpen ? "[CLOSE]" : "[MENU]"}
+            </button>
+            <Link
+                href="/"
+                className="bg-background-dark/95 backdrop-blur-sm border-2 border-neon-pink px-4 py-3 text-xs font-code uppercase text-neon-pink hover:bg-neon-pink/10 transition-all shadow-[0_0_20px_rgba(255,0,110,0.3)] hover:shadow-[0_0_30px_rgba(255,0,110,0.5)] text-center"
+            >
+                [HOME]
+            </Link>
+          </div>
           <aside
               className={`${
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
