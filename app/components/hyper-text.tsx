@@ -20,13 +20,11 @@ const HyperText = ({
   rel
 }: HyperTextProps) => {
   const [displayText, setDisplayText] = useState(text);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
 
   const scramble = () => {
     let iteration = 0;
-    setIsAnimating(true);
 
     const interval = setInterval(() => {
       setDisplayText(
@@ -43,7 +41,6 @@ const HyperText = ({
 
       if (iteration >= text.length) {
         clearInterval(interval);
-        setIsAnimating(false);
       }
 
       iteration += 1 / 3;

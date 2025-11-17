@@ -13,7 +13,7 @@ const Header = () => {
         </div>
         <h2 className="text-text-light text-sm sm:text-base md:text-lg font-bold tracking-wide sm:tracking-widest font-headline uppercase">
           <span className="blinking-cursor">AHENK</span>
-          <span className="hidden sm:inline text-primary ml-2">// ONLINE</span>
+          <span className="hidden sm:inline text-primary ml-2">{"//"} ONLINE</span>
         </h2>
       </div>
       <div className="flex items-center gap-3 sm:gap-4 text-xs font-code uppercase">

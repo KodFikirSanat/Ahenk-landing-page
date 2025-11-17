@@ -15,12 +15,12 @@ const Footer = () => {
         </div>
         <p className="text-xs sm:text-sm">
           <span className="text-neon-pink font-bold">ACTIVE</span>
-          <span className="hidden sm:inline text-secondary-accent ml-2">// P2P SYNC</span>
+          <span className="hidden sm:inline text-secondary-accent ml-2">{"//"} P2P SYNC</span>
         </p>
       </div>
       <div className="flex items-center gap-3 sm:gap-4 text-xs text-secondary-accent font-code">
         <span className="hidden lg:inline">
-          2024 AHENK // <span className="text-primary">OPEN SOURCE</span>
+          2024 AHENK {"//"} <span className="text-primary">OPEN SOURCE</span>
         </span>
         <a
           className="hover:text-primary transition-colors uppercase font-bold"

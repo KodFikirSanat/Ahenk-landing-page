@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -79,7 +79,7 @@ export default function DocsPage() {
           const response = await fetch(section.url);
           const text = await response.text();
           setContent(text);
-        } catch (error) {
+        } catch {
           setContent("Error loading documentation. Please try again later.");
         }
       }
@@ -91,14 +91,12 @@ export default function DocsPage() {
 
   const renderMarkdown = (markdown: string) => {
     const lines = markdown.split('\n');
-    const html: JSX.Element[] = [];
+    const html: React.JSX.Element[] = [];
     let inCodeBlock = false;
     let codeBlockContent: string[] = [];
     let codeBlockLang = '';
     let inBlockquote = false;
     let blockquoteContent: string[] = [];
-    let inTable = false;
-    let tableRows: string[][] = [];
 
     const isShieldsBadge = (line: string) => {
       // Detect shields.io badges: [![...](...shields.io...)](...)  or  ![...](...shields.io...)
@@ -108,7 +106,7 @@ export default function DocsPage() {
     };
 
     const getIconForEmoji = (emoji: string) => {
-      const iconMap: { [key: string]: JSX.Element } = {
+      const iconMap: { [key: string]: React.JSX.Element } = {
         '💡': <Lightbulb className="w-5 h-5" />,
         '⚠️': <AlertTriangle className="w-5 h-5" />,
         '⚠': <AlertTriangle className="w-5 h-5" />,
@@ -141,9 +139,9 @@ export default function DocsPage() {
       return iconMap[emoji] || <Info className="w-5 h-5" />;
     };
 
-    const renderTextWithIcons = (text: string): (string | JSX.Element)[] => {
+    const renderTextWithIcons = (text: string): (string | React.JSX.Element)[] => {
       // Remove shields.io badges
-      let cleaned = text
+      const cleaned = text
         .replace(/!\[.*?\]\(.*?shields\.io.*?\)/g, '')
         .replace(/!\[.*?\]\(.*?img\.shields\.io.*?\)/g, '')
         .replace(/\[!\[.*?\]\(.*?shields\.io.*?\)\]\(.*?\)/g, '');
@@ -181,7 +179,7 @@ export default function DocsPage() {
 
     const formatInline = (text: string) => {
       // This is for use in dangerouslySetInnerHTML (no icons, just HTML)
-      let formatted = text
+      const formatted = text
         // Remove shield badges
         .replace(/!\[.*?\]\(.*?shields\.io.*?\)/g, '')
         .replace(/!\[.*?\]\(.*?img\.shields\.io.*?\)/g, '')
