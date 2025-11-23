@@ -1,6 +1,6 @@
 const Header = () => {
   return (
-    <header className="fixed top-0 left-0 w-full bg-background-dark/95 backdrop-blur-sm z-50 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-secondary-accent/20">
+    <header className="sticky top-0 left-0 w-full bg-background-dark/95 backdrop-blur-sm z-50 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-secondary-accent/20">
       <div className="flex items-center gap-2 text-text-light">
         <div className="size-5 sm:size-6 text-primary animate-pulse">
           <svg

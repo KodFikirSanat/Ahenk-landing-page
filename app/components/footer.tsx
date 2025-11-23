@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="fixed bottom-0 left-0 w-full bg-background-dark/95 backdrop-blur-sm z-50 py-3 px-4 sm:px-6 flex justify-between items-center border-t border-secondary-accent/20">
+    <footer className="w-full bg-background-dark/95 backdrop-blur-sm z-50 py-3 px-4 sm:px-6 flex justify-between items-center border-t border-secondary-accent/20">
       <div className="flex items-center gap-2 text-secondary-accent text-xs uppercase font-code">
         <div className="size-3 sm:size-4 text-neon-pink animate-pulse">
           <svg

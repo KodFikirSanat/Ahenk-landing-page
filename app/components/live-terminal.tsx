@@ -108,23 +108,23 @@ const LiveTerminal = () => {
   }, [logs]);
 
   return (
-    <section className="w-full lg:col-span-1 lg:row-span-1 lg:col-start-2 lg:row-start-1 bg-background-dark/80 border border-secondary-accent/30 p-5 sm:p-6 flex flex-col relative overflow-hidden h-[350px] lg:h-full">
+    <section className="w-full h-full bg-background-dark/80 border border-secondary-accent/30 p-6 sm:p-8 flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-secondary-accent/5 to-transparent z-0 opacity-10"></div>
       <div className="flex items-center gap-2 p-2 bg-primary/10 border-b border-primary/30 mb-3 relative z-10">
-        <div className="w-2 h-2 bg-primary animate-pulse"></div>
-        <div className="w-2 h-2 bg-primary"></div>
-        <div className="w-2 h-2 bg-primary"></div>
-        <span className="text-xs sm:text-sm text-primary ml-auto uppercase font-bold">
+        <div className="w-2.5 h-2.5 bg-primary animate-pulse"></div>
+        <div className="w-2.5 h-2.5 bg-primary"></div>
+        <div className="w-2.5 h-2.5 bg-primary"></div>
+        <span className="text-sm sm:text-base text-primary ml-auto uppercase font-bold">
           STATUS::STREAM_ACTIVE
         </span>
       </div>
       <div
         ref={terminalRef}
-        className="flex-grow overflow-y-auto text-left font-code text-xs sm:text-sm text-text-light/90 relative z-10 p-2 sm:p-3 scroll-smooth"
+        className="flex-grow overflow-y-auto text-left font-code text-sm sm:text-base text-text-light/90 relative z-10 p-2 sm:p-3 scroll-smooth"
       >
         {!mounted ? (
           <div className="flex items-center justify-center h-full text-secondary-accent">
-            <span className="blinking-cursor">INITIALIZING...</span>
+            <span className="blinking-cursor text-lg">INITIALIZING...</span>
           </div>
         ) : (
           <pre>
